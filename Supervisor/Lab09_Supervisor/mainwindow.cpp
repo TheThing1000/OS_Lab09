@@ -12,3 +12,21 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
+
+void MainWindow::on_btn_CreateBoard_clicked()
+{
+
+}
+
+
+void MainWindow::on_btn_AskIdeas_clicked()
+{
+
+}
+
+
+void MainWindow::on_btn_StartVoting_clicked()
+{
+
+}
+
