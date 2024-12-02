@@ -14,7 +14,7 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_btn_CreateBoard_clicked()
+void MainWindow::on_btn_CreateBoard_clicked() // why snake case???
 {
     if (m_supervisor.get_status() != NO_BOARD) {
         QMessageBox::StandardButton reply;
