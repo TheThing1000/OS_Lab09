@@ -94,6 +94,3 @@ void MainWindow::on_btn_StartVoting_clicked()
 
     m_supervisor.start_voting();
 }
-
-//poooooooooooooooooooop
-
