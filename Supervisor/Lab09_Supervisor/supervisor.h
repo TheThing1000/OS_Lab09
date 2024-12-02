@@ -6,6 +6,7 @@
 #include <QDebug>
 
 #include <QString>
+#include <QFile>
 
 #include <sys/wait.h>
 #include <unistd.h>
@@ -13,6 +14,7 @@
 #include <fcntl.h>
 #include <semaphore.h>
 
+enum STATUS {NO_BOARD, BOARD_CREATED, IDEAS_COLLECTED, VOTING_COMPLETED};
 
 class Supervisor {
 public:
@@ -20,9 +22,18 @@ public:
     Supervisor(QMainWindow *mainWindow);
     ~Supervisor();
 
+    void create_board_file(QString fileName);
+
+    void collect_ideas(int performersCount, int performersTime);
+
+    void start_voting();
+
+    STATUS get_status();
+
 private:
-    QString m_boardPath;
+    QString m_filePath;
     QMainWindow *m_mainWindow;
+    STATUS m_status;
 };
 
 #endif // SUPERVISOR_H

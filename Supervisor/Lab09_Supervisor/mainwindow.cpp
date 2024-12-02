@@ -16,8 +16,13 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_btn_CreateBoard_clicked()
 {
-    if(false){ //if already created ask to create new
-
+    if (m_supervisor.get_status() != NO_BOARD) {
+        QMessageBox::StandardButton reply;
+        reply = QMessageBox::question(this, "Create new Idea Board", "Board already exists.\nReplace it?",
+                                      QMessageBox::Yes|QMessageBox::No);
+        if (reply != QMessageBox::Yes) {
+            return;
+        }
     }
 
     QString fileName = QFileDialog::getSaveFileName(this, tr("Create new Idea Board"), QDir::homePath() + "/ideaBoard.txt",
@@ -29,28 +34,17 @@ void MainWindow::on_btn_CreateBoard_clicked()
         return;
     }
 
-    QFile file(fileName);
-    if (file.open(QIODevice::ReadOnly | QIODevice::Text)){
-        QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(this, "Create new Idea Board", "File already exists.\nReplace it?",
-                                      QMessageBox::Yes|QMessageBox::No);
-        if (reply != QMessageBox::Yes) {
-            file.close();
-            return;
-        }
-    }
-
-    file.close();
-
-    //TODO
-
+    m_supervisor.create_board_file(fileName);
 }
 
 
 void MainWindow::on_btn_AskIdeas_clicked()
 {
-    if(false){ //if already asked show error
-
+    if (m_supervisor.get_status() != BOARD_CREATED) {
+        QErrorMessage *err = new QErrorMessage(this);
+        err->setWindowTitle("Collection of Ideas failed");
+        err->showMessage("Create Idea Bord first (or ideas were already collected)");
+        return;
     }
 
     QDialog *dialog = new QDialog(this);
@@ -83,13 +77,21 @@ void MainWindow::on_btn_AskIdeas_clicked()
 
 
     if (dialog->exec() == QDialog::Accepted) {
-
+        m_supervisor.collect_ideas(performers_count_spinBox->value(),
+                                   performers_time_spinBox->value());
     }
 }
 
 
 void MainWindow::on_btn_StartVoting_clicked()
 {
+    if (m_supervisor.get_status() != IDEAS_COLLECTED) {
+        QErrorMessage *err = new QErrorMessage(this);
+        err->setWindowTitle("Voting failed");
+        err->showMessage("Create Idea Bord and collect ideas first");
+        return;
+    }
 
+    m_supervisor.start_voting();
 }
 
