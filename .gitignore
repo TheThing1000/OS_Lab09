@@ -52,3 +52,7 @@ compile_commands.json
 *creator.user*
 
 *_qmlcache.qrc
+
+#Build folders
+/Supervisor/Lab09_Supervisor/build
+/Performer/Lab09_Performer/build
