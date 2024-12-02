@@ -1,6 +1,7 @@
 #ifndef SUPERVISOR_H
 #define SUPERVISOR_H
 
+#include <QMainWindow>
 #include <QMessageBox>
 #include <QDebug>
 
@@ -16,10 +17,12 @@
 class Supervisor {
 public:
     Supervisor();
+    Supervisor(QMainWindow *mainWindow);
     ~Supervisor();
 
 private:
-    QString boardPath;
+    QString m_boardPath;
+    QMainWindow *m_mainWindow;
 };
 
 #endif // SUPERVISOR_H
