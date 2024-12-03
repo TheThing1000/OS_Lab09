@@ -6,7 +6,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    m_supervisor = Supervisor(this);
+    m_supervisor = Supervisor(ui->textBrowser_AllIdeas, ui->textBrowser_BestIdeas);
 }
 
 MainWindow::~MainWindow()

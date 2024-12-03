@@ -10,7 +10,7 @@ Performer::~Performer() {}
 
 void Performer::establish_connection(){
     struct sockaddr_in serv_addr;
-    if ((clientSocket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    if ((m_serverSocket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         qDebug() << "Socket creation error";
         return;
     }
@@ -26,12 +26,23 @@ void Performer::establish_connection(){
         return;
     }
 
-    if (connect(clientSocket, (struct sockaddr* )&serv_addr, sizeof(serv_addr)) < 0) {
+    if (connect(m_serverSocket, (struct sockaddr* )&serv_addr, sizeof(serv_addr)) < 0) {
         qDebug() << "Connection Failed";
         return;
     }
+
+    char buffer[1024] = { 0 };
+    read(m_serverSocket, buffer,
+         1024 - 1); // subtract 1 for the null
+    // terminator at the end
+    buffer[1023] = '\0';
+    m_filePath = buffer;
+    qDebug() << m_filePath;
 }
 
 void Performer::send_idea(QString idea){
-    send(clientSocket, idea.toStdString().c_str(), idea.length() + 1, 0);
+    QFile board(m_filePath);
+    board.open(QIODevice::Append);
+    QTextStream out(&board);
+    out << idea + "\n";
 }

@@ -1,12 +1,15 @@
 #include "supervisor.h"
 
 Supervisor::Supervisor() {
-    m_mainWindow = nullptr;
+    m_browserAll = nullptr;
+    m_browserBest = nullptr;
     m_status = NO_BOARD;
 }
 
-Supervisor::Supervisor(QMainWindow *mainWindow) {
-    m_mainWindow = mainWindow;
+Supervisor::Supervisor(QTextBrowser *browserAll,
+                       QTextBrowser *browserBest) {
+    m_browserAll = browserAll;
+    m_browserBest = browserBest;
     m_status = NO_BOARD;
 }
 
@@ -19,6 +22,8 @@ void Supervisor::create_board_file(QString fileName) {
     board.open(QIODevice::WriteOnly);
     board.close();
 
+    m_browserAll->setText("Nothing to show. Ask for ideas.");
+    m_browserBest->setText("Nothing to show. Ask for ideas.");
     m_status = BOARD_CREATED;
 }
 
@@ -27,10 +32,6 @@ STATUS Supervisor::get_status() {
 }
 
 void Supervisor::collect_ideas(int performersCount, int performersTime){
-    QFile board(m_filePath);
-    board.open(QIODevice::WriteOnly);
-    QTextStream out(&board);
-    out << "\tAll Ideas:\n";
 
     //Creating performers
     m_performersPids.clear();
@@ -99,27 +100,27 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
             qDebug() << "accept";
             return;;
         }
+
+        send(m_performersSockets.last(), m_filePath.toStdString().c_str(), m_filePath.length(), 0);
     }
 
-    qDebug() << "!!!!";
+    sleep(performersTime * 60);
 
-    int ideas_collected_count = 0;
-    while (ideas_collected_count < performersCount){
-        qDebug() << "!";
-        for(int i = 0; i < m_performersSockets.size(); i++){
-            qDebug() << "!!";
-            char buffer[1024] = { 0 };
-            read(m_performersSockets[i], buffer,
-                 1024 - 1); // subtract 1 for the null
-            // terminator at the end
-            buffer[1023] = '\0';
-            m_ideas.append(buffer);
-            qDebug() << m_ideas.last();
-            out << m_ideas.last();
-            ideas_collected_count++;
-        }
+    //TODO stop voting
+
+    QFile board(m_filePath);
+    board.open(QIODevice::ReadWrite);
+    QTextStream in(&board);
+
+    m_browserAll->setText("All ideas:\n");
+    m_browserBest->setText("Nothing to show. Vote for ideas.");
+
+    //Read ideas from file into ideas_vector
+    while (!in.atEnd()) {
+        QString idea = in.readLine();
+        m_ideas.append(idea);
+        m_browserAll->append(idea);
     }
-
 
     board.close();
     m_status = IDEAS_COLLECTED;

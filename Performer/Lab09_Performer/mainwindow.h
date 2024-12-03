@@ -27,5 +27,6 @@ private slots:
 private:
     Ui::MainWindow *ui;
     Performer m_performer;
+    unsigned m_ideaCount;
 };
 #endif // MAINWINDOW_H

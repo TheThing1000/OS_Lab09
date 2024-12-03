@@ -12,6 +12,7 @@
 #include <QTextStream>
 #include <QList>
 #include <QStringList>
+#include <QTextBrowser>
 
 #include <sys/wait.h>
 #include <unistd.h>
@@ -24,7 +25,8 @@ enum STATUS {NO_BOARD, BOARD_CREATED, IDEAS_COLLECTED, VOTING_COMPLETED};
 class Supervisor {
 public:
     Supervisor();
-    Supervisor(QMainWindow *mainWindow);
+    Supervisor(QTextBrowser *browserAll,
+               QTextBrowser *browserBest);
     ~Supervisor();
 
     void create_board_file(QString fileName);
@@ -37,7 +39,8 @@ public:
 
 private:
     QString m_filePath;
-    QMainWindow *m_mainWindow;
+    QTextBrowser *m_browserAll;
+    QTextBrowser *m_browserBest;
     STATUS m_status;
     QList<int> m_performersSockets;
     QList<pid_t> m_performersPids;

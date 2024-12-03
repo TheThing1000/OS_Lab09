@@ -8,6 +8,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     m_performer = Performer(this);
     m_performer.establish_connection();
+    m_ideaCount = 0;
 }
 
 MainWindow::~MainWindow()
@@ -17,7 +18,15 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_btn_SubbmitIdea_clicked()
 {
-    m_performer.send_idea(ui->textEdit_IdeaText->toPlainText());
+    m_ideaCount++;
+    QString idea("PID: ");
+    idea += QString::number(getpid());
+    idea += "; Idea #";
+    idea += QString::number(m_ideaCount);
+    idea += ": ";
+    idea += ui->textEdit_IdeaText->toPlainText();
+    m_performer.send_idea(idea);
+    ui->textEdit_IdeaText->setText("");
 }
 
 

@@ -11,6 +11,8 @@
 
 #include <QMainWindow>
 #include <QStringList>
+#include <QFile>
+#include <QTextStream>
 
 class Performer
 {
@@ -25,9 +27,9 @@ public:
     void send_votes(QString idea);
 
 private:
-    int serverSocket;
-    int clientSocket;
+    int m_serverSocket;
     QMainWindow *m_mainWindow;
+    QString m_filePath;
 };
 
 #endif // PERFORMER_H
