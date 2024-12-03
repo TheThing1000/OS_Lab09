@@ -39,11 +39,14 @@ void Performer::write_idea_to_board(QString idea){
     board.open(QIODevice::Append);
     QTextStream out(&board);
     out << idea + "\n";
+    board.close();
+    qDebug() << m_filePath;
+
 }
 
 QList<QCheckBox*> Performer::display_ideas(){
     QFile board(m_filePath);
-    board.open(QIODevice::ReadWrite);
+    board.open(QIODevice::ReadOnly);
     QTextStream in(&board);
 
     QList<QCheckBox*> checkBoxes;
@@ -67,7 +70,7 @@ QList<QCheckBox*> Performer::display_ideas(){
 }
 
 QList<bool> Performer::collect_votes(QList<QCheckBox*> checkBoxes){
-    QList<bool> votes;
+    QList<bool> votes(checkBoxes.size(), false);
     for(int i = 0; i < checkBoxes.size(); i++){
         votes[i] = (checkBoxes[i]->checkState() == Qt::Checked) ? true : false;
     }
@@ -75,7 +78,11 @@ QList<bool> Performer::collect_votes(QList<QCheckBox*> checkBoxes){
 }
 
 void Performer::send_votes(QList<bool> votes){
+    QString votesStr("");
+    for(int i = 0; i < votes.size(); i++)
+        votesStr += votes[i] ? '1' : '0';
 
+    write(m_serverSocket, votesStr.toStdString().c_str(), votesStr.length());
 }
 
 

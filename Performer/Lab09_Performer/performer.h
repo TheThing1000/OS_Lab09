@@ -19,9 +19,6 @@
 
 #include <signal.h>
 
-
-
-
 class Performer
 {
 public:

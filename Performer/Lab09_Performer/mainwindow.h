@@ -2,12 +2,16 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QErrorMessage>
+#include <QMessageBox>
 
 #include "performer.h"
 
 void sigusr_handler(int signum);
 
-static bool disableSubmitting;
+static bool disableSubmittingVotes;
+static bool disableSubmittingIdeas;
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -23,6 +27,8 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    void display_ideas();
+
 private slots:
     void on_btn_SubbmitIdea_clicked();
 
@@ -34,4 +40,7 @@ private:
     QList<QCheckBox*> m_checkBoxes;
     unsigned m_ideaCount;
 };
+
+static MainWindow* MainWindowPtr;
+
 #endif // MAINWINDOW_H

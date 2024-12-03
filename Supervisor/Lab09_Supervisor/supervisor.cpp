@@ -48,7 +48,7 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
                 // swapping with performer
 
                 //TODO fix directories
-                execl("../../../../Performer/Lab09_Performer/build/Desktop_Qt_6_7_2-Debug/Lab09_Performer", NULL);
+                execl("../../../../Performer/Lab09_Performer/build/Desktop_Qt_6_7_3-Debug/Lab09_Performer", NULL);
 
                 qDebug() << "Failed to execl =(";
                 return;
@@ -108,7 +108,7 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
 
     //change sleep time
     qDebug() << "going to sleep";
-    sleep(15);
+    sleep(performersTime);
     qDebug() << "Stopped sleeping";
 
     //Stopping all performers
@@ -147,7 +147,8 @@ QList<unsigned> Supervisor::start_voting(){
 
     for(int clientInd = 0; clientInd < m_performersSockets.size(); clientInd++){
         char clientVotes[1024] = {0};
-        read(m_performersSockets[clientInd], clientVotes, 1024 - 1); // subtract 1 for the null terminator
+        int res = read(m_performersSockets[clientInd], clientVotes, 1024 - 1); // subtract 1 for the null terminator
+        qDebug() << " read: " << res;
         clientVotes[1023] = '\0';
         for(int ideaInd = 0; ideaInd < m_ideas.size(); ideaInd++){
             if(clientVotes[ideaInd] == '1') votes[ideaInd]++;
@@ -156,11 +157,35 @@ QList<unsigned> Supervisor::start_voting(){
     }
     m_performersSockets.clear();
 
+    for (int i = 0; i < m_performersPids.size(); i++){
+        kill(m_performersPids[i], SIGTERM);
+    }
+
     m_status = VOTING_COMPLETED;
     return votes;
 }
 
 void Supervisor::display_best(QList<unsigned> votes){
     m_browserBest->setText("Top 3 ideas:\n");
+    qDebug() << votes;
+    QList<std::pair<unsigned, QString>> votes_ideas;
+    for (int i = 0; i < m_ideas.size(); ++i) {
+        votes_ideas.append(std::pair<unsigned, QString>(votes[i], m_ideas[i]));
+    }
+    std::sort(votes_ideas.begin(), votes_ideas.end());
 
+    QFile board(m_filePath);
+    board.open(QIODevice::Append);
+    QTextStream out(&board);
+    out << "\n\nTop 3 ideas:\n";
+
+    int i = 0;
+    while(i < votes_ideas.size()){
+        if(i == 3) break;
+        QString bestIdea = votes_ideas[i].second + " (" + QString::number(votes_ideas[i].first) + " votes)";
+        m_browserBest->append(bestIdea);
+        out << bestIdea + "\n";
+        i++;
+    }
+    board.close();
 }
