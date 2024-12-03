@@ -38,6 +38,8 @@ public:
 
     QList<unsigned> start_voting();
 
+    void display_best(QList<unsigned> votes);
+
     STATUS get_status();
 
 private:

@@ -135,15 +135,23 @@ QList<unsigned> Supervisor::start_voting(){
 
     QList<unsigned> votes(m_ideas.size(), 0);
 
-    for(int client = 0; client < m_performersSockets.size(); client++){
+    for(int clientInd = 0; clientInd < m_performersSockets.size(); clientInd++){
         char clientVotes[1024] = {0};
-        read(m_performersSockets[client], clientVotes, 1024 - 1); // subtract 1 for the null terminator
+        read(m_performersSockets[clientInd], clientVotes, 1024 - 1); // subtract 1 for the null terminator
         clientVotes[1023] = '\0';
         for(int ideaInd = 0; ideaInd < m_ideas.size(); ideaInd++){
-            if(clientVotes[ideaInd]) votes[ideaInd]++;
+            if(clientVotes[ideaInd] == '1') votes[ideaInd]++;
         }
+        close(m_performersSockets[clientInd]);
     }
+    m_performersSockets.clear();
+
 
     m_status = VOTING_COMPLETED;
     return votes;
+}
+
+void Supervisor::display_best(QList<unsigned> votes){
+    m_browserBest->setText("Top 3 ideas:\n");
+
 }
