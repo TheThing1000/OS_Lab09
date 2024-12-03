@@ -48,7 +48,7 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
                 // swapping with performer
 
                 //TODO fix directories
-                execl("../../../../Performer/Lab09_Performer/build/Desktop_Qt_6_7_3-Debug/Lab09_Performer", NULL);
+                execl("../../../../Performer/Lab09_Performer/build/Desktop_Qt_6_7_2-Debug/Lab09_Performer", NULL);
 
                 qDebug() << "Failed to execl =(";
                 return;
@@ -111,6 +111,12 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
     sleep(15);
     qDebug() << "Stopped sleeping";
 
+    //Stopping all performers
+    for (int i = 0; i < performersCount; i++){
+        kill(m_performersPids[i], SIGUSR1);
+        kill(m_performersPids[i], SIGSTOP);
+    }
+
     //TODO stop voting
 
     QFile board(m_filePath);
@@ -133,4 +139,7 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
 
 void Supervisor::start_voting(){
     m_status = VOTING_COMPLETED;
+    for (int i = 0; i < m_performersPids.size(); i++){
+        kill(m_performersPids[i], SIGCONT);
+    }
 }

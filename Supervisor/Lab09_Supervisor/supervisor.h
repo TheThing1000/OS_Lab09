@@ -23,6 +23,8 @@
 #include <semaphore.h>
 #include <sys/un.h>
 
+
+
 enum STATUS {NO_BOARD, BOARD_CREATED, IDEAS_COLLECTED, VOTING_COMPLETED};
 
 class Supervisor {

@@ -17,6 +17,11 @@
 #include <QWidget>
 #include <QCheckBox>
 
+#include <signal.h>
+
+
+
+
 class Performer
 {
 public:
