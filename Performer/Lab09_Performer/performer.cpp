@@ -32,9 +32,8 @@ void Performer::establish_connection(){
     }
 
     char buffer[1024] = { 0 };
-    read(m_serverSocket, buffer,
-         1024 - 1); // subtract 1 for the null
-    // terminator at the end
+    read(m_serverSocket, buffer, 1024 - 1); // subtract 1 for the null terminator
+
     buffer[1023] = '\0';
     m_filePath = buffer;
     qDebug() << m_filePath;

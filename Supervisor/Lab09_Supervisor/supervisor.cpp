@@ -40,18 +40,17 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
         if(getpid() == supervisor_pid){
 
             pid_t pid = fork();
-            qDebug() << "!";
+            qDebug() << "forking";
             if(pid == -1){
-                qDebug() << "fork";
+                qDebug() << "fork fail";
                 return;
             } else if (pid == 0){
-                execl("/home/thething/TheThing/OS Lab09/Lab09/OS_Lab09/Performer/Lab09_Performer/build/Desktop_Qt_6_7_3-Release/Lab09_Performer", NULL);
-                //std::string cmd_line = "/home/thething/TheThing/OS Lab09/Lab09/OS_Lab09/Supervisor/test_client";
-                // char* cmd = new char[cmd_line.length() + 1];
-                // strcpy(cmd, cmd_line.c_str());
-                // execl("/usr/bin/xterm", "xterm", "-T", "New Process", "-e", cmd, NULL);
-                // delete[] cmd;
-                qDebug() << "execl";
+                // swapping with performer
+
+                //TODO fix directories
+                execl("../../../../Performer/Lab09_Performer/build/Desktop_Qt_6_7_2-Debug/Lab09_Performer", NULL);
+
+                qDebug() << "Failed to execl =(";
                 return;
             } else {
                 m_performersPids.append(pid);
@@ -89,22 +88,28 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
         return;;
     }
     if (listen(server_fd, performersCount) < 0) {
-        qDebug() << "listen";
+        qDebug() << "listen failed";
         return;;
     }
 
     for(int i = 0; i < performersCount; i++){
+        //appending all the file handles
         m_performersSockets.append(accept(server_fd, (struct sockaddr*)&address,
                                           &addrlen));
+        // check for errors
         if (m_performersSockets.last() < 0) {
-            qDebug() << "accept";
-            return;;
+            qDebug() << "accept file handle error";
+            return;
         }
-
+        // sending filePath to all the clients
         send(m_performersSockets.last(), m_filePath.toStdString().c_str(), m_filePath.length(), 0);
+
     }
 
-    sleep(performersTime * 60);
+    //change sleep time
+    qDebug() << "going to sleep";
+    sleep(15);
+    qDebug() << "Stopped sleeping";
 
     //TODO stop voting
 
