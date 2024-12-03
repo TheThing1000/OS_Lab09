@@ -1,12 +1,15 @@
 #ifndef SUPERVISOR_H
 #define SUPERVISOR_H
 
+#define PORT 8080
+
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QDebug>
 
 #include <QString>
 #include <QFile>
+#include <QTextStream>
 
 #include <sys/wait.h>
 #include <unistd.h>
