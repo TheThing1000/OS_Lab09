@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 
+#include "performer.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
@@ -17,7 +19,13 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+private slots:
+    void on_btn_SubbmitIdea_clicked();
+
+    void on_btn_SubmitVotes_clicked();
+
 private:
     Ui::MainWindow *ui;
+    Performer m_performer;
 };
 #endif // MAINWINDOW_H

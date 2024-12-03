@@ -33,6 +33,7 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
     out << "\tAll Ideas:\n";
 
     //Creating performers
+    m_performersPids.clear();
     pid_t supervisor_pid = getpid();
     for(int i = 0; i < performersCount; i++){
         if(getpid() == supervisor_pid){
@@ -43,19 +44,21 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
                 qDebug() << "fork";
                 return;
             } else if (pid == 0){
-                //execl();
-                std::string cmd_line = "/home/thething/TheThing/OS Lab09/Lab09/OS_Lab09/Supervisor/test_client";
-                char* cmd = new char[cmd_line.length() + 1];
-                strcpy(cmd, cmd_line.c_str());
-                execl("/usr/bin/xterm", "xterm", "-T", "New Process", "-e", cmd, NULL);
-                delete[] cmd;
+                execl("/home/thething/TheThing/OS Lab09/Lab09/OS_Lab09/Performer/Lab09_Performer/build/Desktop_Qt_6_7_3-Release/Lab09_Performer", NULL);
+                //std::string cmd_line = "/home/thething/TheThing/OS Lab09/Lab09/OS_Lab09/Supervisor/test_client";
+                // char* cmd = new char[cmd_line.length() + 1];
+                // strcpy(cmd, cmd_line.c_str());
+                // execl("/usr/bin/xterm", "xterm", "-T", "New Process", "-e", cmd, NULL);
+                // delete[] cmd;
                 qDebug() << "execl";
                 return;
+            } else {
+                m_performersPids.append(pid);
             }
         }
     }
 
-    int server_fd, new_socket;
+    int server_fd;
     struct sockaddr_in address;
     int opt = 1;
     socklen_t addrlen = sizeof(address);
@@ -63,7 +66,7 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         qDebug() << "socket failed";
-        exit(EXIT_FAILURE);
+        return;;
     }
 
     // Forcefully attaching socket to the port 8080
@@ -71,7 +74,7 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
                    SO_REUSEADDR | SO_REUSEPORT, &opt,
                    sizeof(opt))) {
         qDebug() << "setsockopt";
-        exit(EXIT_FAILURE);
+        return;;
     }
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
@@ -82,33 +85,40 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
              sizeof(address))
         < 0) {
         qDebug() << "bind failed";
-        exit(EXIT_FAILURE);
+        return;;
     }
-    if (listen(server_fd, 3) < 0) {
+    if (listen(server_fd, performersCount) < 0) {
         qDebug() << "listen";
-        exit(EXIT_FAILURE);
-    }
-    if ((new_socket
-         = accept(server_fd, (struct sockaddr*)&address,
-                  &addrlen))
-        < 0) {
-        qDebug() << "accept";
-        exit(EXIT_FAILURE);
+        return;;
     }
 
-    char buffer[1024] = { 0 };
-    char* hello = "Hello from server";
-    read(new_socket, buffer,
-                   1024 - 1); // subtract 1 for the null
-        // terminator at the end
-    printf("%s\n", buffer);
-    send(new_socket, hello, strlen(hello), 0);
-    printf("Hello message sent\n");
+    for(int i = 0; i < performersCount; i++){
+        m_performersSockets.append(accept(server_fd, (struct sockaddr*)&address,
+                                          &addrlen));
+        if (m_performersSockets.last() < 0) {
+            qDebug() << "accept";
+            return;;
+        }
+    }
 
-    // closing the connected socket
-    close(new_socket);
-    // closing the listening socket
-    close(server_fd);
+    qDebug() << "!!!!";
+
+    int ideas_collected_count = 0;
+    while (ideas_collected_count < performersCount){
+        qDebug() << "!";
+        for(int i = 0; i < m_performersSockets.size(); i++){
+            qDebug() << "!!";
+            char buffer[1024] = { 0 };
+            read(m_performersSockets[i], buffer,
+                 1024 - 1); // subtract 1 for the null
+            // terminator at the end
+            buffer[1023] = '\0';
+            m_ideas.append(buffer);
+            qDebug() << m_ideas.last();
+            out << m_ideas.last();
+            ideas_collected_count++;
+        }
+    }
 
 
     board.close();

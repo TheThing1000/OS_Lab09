@@ -10,6 +10,8 @@
 #include <QString>
 #include <QFile>
 #include <QTextStream>
+#include <QList>
+#include <QStringList>
 
 #include <sys/wait.h>
 #include <unistd.h>
@@ -37,6 +39,9 @@ private:
     QString m_filePath;
     QMainWindow *m_mainWindow;
     STATUS m_status;
+    QList<int> m_performersSockets;
+    QList<pid_t> m_performersPids;
+    QStringList m_ideas;
 };
 
 #endif // SUPERVISOR_H
