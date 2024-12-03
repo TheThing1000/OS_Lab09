@@ -24,11 +24,10 @@ private slots:
 
     void on_btn_SubmitVotes_clicked();
 
-    void display_ideas_for_voting();
-
 private:
     Ui::MainWindow *ui;
     Performer m_performer;
+    QList<QCheckBox*> m_checkBoxes;
     unsigned m_ideaCount;
 };
 #endif // MAINWINDOW_H

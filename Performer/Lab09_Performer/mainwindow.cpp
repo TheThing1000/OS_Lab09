@@ -36,8 +36,6 @@ void MainWindow::on_btn_SubbmitIdea_clicked()
 void MainWindow::on_btn_SubmitVotes_clicked()
 {
     m_checkBoxes = m_performer.display_ideas();
-}
 
-void MainWindow::display_ideas_for_voting(){
-
+    //m_performer.send_votes(m_performer.collect_votes(m_checkBoxes));
 }
