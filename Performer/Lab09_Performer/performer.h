@@ -16,22 +16,25 @@
 #include <QStringList>
 #include <QFile>
 #include <QTextStream>
+#include <QWidget>
+#include <QCheckBox>
 
 class Performer
 {
 public:
     Performer();
-    Performer(QMainWindow *mainWindow);
+    Performer(QWidget *scrollAreaWidget);
     ~Performer();
 
     void establish_connection();
     void send_idea(QString idea);
     QStringList recieve_ideas();
     void send_votes(QString idea);
+    void display_ideas();
 
 private:
     int m_serverSocket;
-    QMainWindow *m_mainWindow;
+    QWidget *m_scrollAreaWidget;
     QString m_filePath;
 };
 
