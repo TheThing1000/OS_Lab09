@@ -27,6 +27,7 @@ private slots:
 private:
     Ui::MainWindow *ui;
     Performer m_performer;
+    QList<QCheckBox*> m_checkBoxes;
     unsigned m_ideaCount;
 };
 #endif // MAINWINDOW_H

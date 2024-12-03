@@ -2,8 +2,8 @@
 
 Performer::Performer() {}
 
-Performer::Performer(QMainWindow *mainWindow) {
-    m_mainWindow = mainWindow;
+Performer::Performer(QWidget *scrollAreaWidget) {
+    m_scrollAreaWidget = scrollAreaWidget;
 }
 
 Performer::~Performer() {}
@@ -34,9 +34,46 @@ void Performer::establish_connection(){
     qDebug() << m_filePath;
 }
 
-void Performer::send_idea(QString idea){
+void Performer::write_idea_to_board(QString idea){
     QFile board(m_filePath);
     board.open(QIODevice::Append);
     QTextStream out(&board);
     out << idea + "\n";
+}
+
+QList<QCheckBox*> Performer::display_ideas(){
+    QFile board(m_filePath);
+    board.open(QIODevice::ReadWrite);
+    QTextStream in(&board);
+
+    QList<QCheckBox*> checkBoxes;
+    int idea_count =0;
+    while (!in.atEnd()) {
+        QStringList idea_tokens = in.readLine().split(" ");
+        QString idea = idea_tokens[0] + " " + idea_tokens[1] + " " + idea_tokens[2] + " " + idea_tokens[3].removeLast();
+        m_scrollAreaWidget->resize(m_scrollAreaWidget->width(), m_scrollAreaWidget->height() + 50);
+
+        checkBoxes.append(new QCheckBox(m_scrollAreaWidget));
+        checkBoxes.last()->setCheckState(Qt::Unchecked);
+        checkBoxes.last()->setGeometry(10, 10 + 50 * idea_count, 200, 30);
+        checkBoxes.last()->setText(idea);
+        checkBoxes.last()->show();
+
+        idea_count++;
+    }
+
+    board.close();
+    return checkBoxes;
+}
+
+QList<bool> Performer::collect_votes(QList<QCheckBox*> checkBoxes){
+    QList<bool> votes;
+    for(int i = 0; i < checkBoxes.size(); i++){
+        votes[i] = (checkBoxes[i]->checkState() == Qt::Checked) ? true : false;
+    }
+    return votes;
+}
+
+void Performer::send_votes(QList<bool> votes){
+
 }
