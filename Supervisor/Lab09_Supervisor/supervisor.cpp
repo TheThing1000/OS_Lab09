@@ -48,7 +48,7 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
                 // swapping with performer
 
                 //TODO fix directories
-                execl("../../../../Performer/Lab09_Performer/build/Desktop_Qt_6_7_3-Debug/Lab09_Performer", NULL);
+                execl("../../../../Performer/Lab09_Performer/build/Desktop_Qt_6_7_2-Debug/Lab09_Performer", NULL);
 
                 qDebug() << "Failed to execl =(";
                 return;

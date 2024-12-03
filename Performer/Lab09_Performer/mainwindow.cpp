@@ -15,6 +15,8 @@ MainWindow::MainWindow(QWidget *parent)
     disableSubmittingVotes = true;
     disableSubmittingIdeas = false;
     MainWindowPtr = this;
+
+    connect(this, &MainWindow::on_sigusr, this, &MainWindow::display_ideas_slot);
 }
 
 MainWindow::~MainWindow()
@@ -66,7 +68,7 @@ void MainWindow::on_btn_SubmitVotes_clicked()
     QMessageBox::information(this, "Votes submitted!", "Take a rest");
 }
 
-void MainWindow::display_ideas(){
+void MainWindow::display_ideas_slot(){
     m_checkBoxes = m_performer.display_ideas();
 }
 
@@ -74,5 +76,5 @@ void sigusr_handler(int signum){
     disableSubmittingIdeas = true;
     disableSubmittingVotes = false;
     qDebug() << "DISPLAY";
-    MainWindowPtr->display_ideas();
+    emit MainWindowPtr->on_sigusr();
 }

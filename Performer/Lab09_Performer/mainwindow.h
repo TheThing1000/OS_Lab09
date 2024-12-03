@@ -27,7 +27,11 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void display_ideas();
+signals:
+    void on_sigusr();
+
+public slots:
+    void display_ideas_slot();
 
 private slots:
     void on_btn_SubbmitIdea_clicked();
