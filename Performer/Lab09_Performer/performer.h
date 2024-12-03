@@ -3,10 +3,13 @@
 
 #define PORT 8080
 
+#define SERVER_PATH "/tmp/server"
+
 #include <arpa/inet.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/un.h>
 #include <unistd.h>
 
 #include <QMainWindow>

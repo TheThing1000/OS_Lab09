@@ -9,33 +9,28 @@ Performer::Performer(QMainWindow *mainWindow) {
 Performer::~Performer() {}
 
 void Performer::establish_connection(){
-    struct sockaddr_in serv_addr;
-    if ((m_serverSocket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        qDebug() << "Socket creation error";
+
+
+    m_serverSocket = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (m_serverSocket == -1){
+        qDebug() << "socket failed";
         return;
     }
 
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORT);
+    struct sockaddr_un server_addr;
+    server_addr.sun_family = AF_UNIX;
+    strcpy(server_addr.sun_path, SERVER_PATH);
 
-    // Convert IPv4 and IPv6 addresses from text to binary
-    // form
-    if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)
-        <= 0) {
-        qDebug() << "Invalid address/ Address not supported";
+    if (connect(m_serverSocket, (struct sockaddr* )&server_addr, sizeof(server_addr)) < 0) {
+        qDebug() << "connect failed";
         return;
     }
 
-    if (connect(m_serverSocket, (struct sockaddr* )&serv_addr, sizeof(serv_addr)) < 0) {
-        qDebug() << "Connection Failed";
-        return;
-    }
+    char filePath[1024] = {0};
+    read(m_serverSocket, filePath, 1024 - 1); // subtract 1 for the null terminator
+    filePath[1023] = '\0';
 
-    char buffer[1024] = { 0 };
-    read(m_serverSocket, buffer, 1024 - 1); // subtract 1 for the null terminator
-
-    buffer[1023] = '\0';
-    m_filePath = buffer;
+    m_filePath = filePath;
     qDebug() << m_filePath;
 }
 

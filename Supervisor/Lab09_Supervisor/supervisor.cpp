@@ -58,43 +58,43 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
         }
     }
 
-    int server_fd;
-    struct sockaddr_in address;
-    int opt = 1;
-    socklen_t addrlen = sizeof(address);
+    int server_fd = -1;
+    struct sockaddr_un server_addr;
+    socklen_t addrlen = sizeof(server_addr);
+
+
+    if (access(SERVER_PATH, F_OK) != -1) {
+        unlink(SERVER_PATH); // delete the old socket
+    }
 
     // Creating socket file descriptor
-    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    if ((server_fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
         qDebug() << "socket failed";
-        return;;
+        return;
     }
 
-    // Forcefully attaching socket to the port 8080
-    if (setsockopt(server_fd, SOL_SOCKET,
-                   SO_REUSEADDR | SO_REUSEPORT, &opt,
-                   sizeof(opt))) {
-        qDebug() << "setsockopt";
-        return;;
-    }
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(PORT);
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sun_family = AF_UNIX;
+    strcpy(server_addr.sun_path, SERVER_PATH);
 
-    // Forcefully attaching socket to the port 8080
-    if (bind(server_fd, (struct sockaddr*)&address,
-             sizeof(address))
-        < 0) {
+
+    // Getting a unique name for the socket
+    if (bind(server_fd, (struct sockaddr*) &server_addr, SUN_LEN(&server_addr)) < 0) {
         qDebug() << "bind failed";
-        return;;
+        return;
     }
+
+    //Allow the server to accept incoming client connections. Backlog = performersCount means that the
+    //system will queue performersCount incoming connection requests before it start rejecting them
     if (listen(server_fd, performersCount) < 0) {
         qDebug() << "listen failed";
-        return;;
+        return;
     }
 
     for(int i = 0; i < performersCount; i++){
         //appending all the file handles
-        m_performersSockets.append(accept(server_fd, (struct sockaddr*)&address,
+        //accept will block indefinitely waiting for the incoming connection to arrive
+        m_performersSockets.append(accept(server_fd, (struct sockaddr*)&server_addr,
                                           &addrlen));
         // check for errors
         if (m_performersSockets.last() < 0) {
@@ -102,8 +102,8 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
             return;
         }
         // sending filePath to all the clients
-        send(m_performersSockets.last(), m_filePath.toStdString().c_str(), m_filePath.length(), 0);
-
+        // send(m_performersSockets.last(), m_filePath.toStdString().c_str(), m_filePath.length(), 0);
+        write(m_performersSockets.last(), m_filePath.toStdString().c_str(), m_filePath.length());
     }
 
     //change sleep time

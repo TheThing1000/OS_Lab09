@@ -7,6 +7,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     m_performer = Performer(this);
+    qDebug() << "Establishing connection...";
     m_performer.establish_connection();
     m_ideaCount = 0;
 }

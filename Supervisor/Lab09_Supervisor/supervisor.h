@@ -3,6 +3,8 @@
 
 #define PORT 8080
 
+#define SERVER_PATH "/tmp/server"
+
 #include <QMainWindow>
 #include <QMessageBox>
 #include <QDebug>
@@ -19,6 +21,7 @@
 #include <netinet/in.h>
 #include <fcntl.h>
 #include <semaphore.h>
+#include <sys/un.h>
 
 enum STATUS {NO_BOARD, BOARD_CREATED, IDEAS_COLLECTED, VOTING_COMPLETED};
 
