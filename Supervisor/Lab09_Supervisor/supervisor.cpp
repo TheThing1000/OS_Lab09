@@ -131,6 +131,19 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
     m_status = IDEAS_COLLECTED;
 }
 
-void Supervisor::start_voting(){
+QList<unsigned> Supervisor::start_voting(){
+
+    QList<unsigned> votes(m_ideas.size(), 0);
+
+    for(int client = 0; client < m_performersSockets.size(); client++){
+        char clientVotes[1024] = {0};
+        read(m_performersSockets[client], clientVotes, 1024 - 1); // subtract 1 for the null terminator
+        clientVotes[1023] = '\0';
+        for(int ideaInd = 0; ideaInd < m_ideas.size(); ideaInd++){
+            if(clientVotes[ideaInd]) votes[ideaInd]++;
+        }
+    }
+
     m_status = VOTING_COMPLETED;
+    return votes;
 }

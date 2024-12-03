@@ -92,5 +92,5 @@ void MainWindow::on_btn_StartVoting_clicked()
         return;
     }
 
-    m_supervisor.start_voting();
+    QList<unsigned> votes = m_supervisor.start_voting();
 }
