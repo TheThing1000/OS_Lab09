@@ -38,7 +38,9 @@ public:
 
     void collect_ideas(int performersCount, int performersTime);
 
-    void start_voting();
+    QList<unsigned> start_voting();
+
+    void display_best(QList<unsigned> votes);
 
     STATUS get_status();
 

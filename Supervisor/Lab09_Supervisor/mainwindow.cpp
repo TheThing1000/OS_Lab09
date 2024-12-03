@@ -92,5 +92,9 @@ void MainWindow::on_btn_StartVoting_clicked()
         return;
     }
 
-    m_supervisor.start_voting();
+    QList<unsigned> votes = m_supervisor.start_voting();
+
+    QMessageBox::information(this, "Voting completed", "Voting completed.\nTop 3 ideas formed.");
+
+    m_supervisor.display_best(votes);
 }

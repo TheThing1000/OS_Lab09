@@ -137,9 +137,30 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
     m_status = IDEAS_COLLECTED;
 }
 
-void Supervisor::start_voting(){
-    m_status = VOTING_COMPLETED;
+QList<unsigned> Supervisor::start_voting(){
+
     for (int i = 0; i < m_performersPids.size(); i++){
         kill(m_performersPids[i], SIGCONT);
     }
+  
+    QList<unsigned> votes(m_ideas.size(), 0);
+
+    for(int clientInd = 0; clientInd < m_performersSockets.size(); clientInd++){
+        char clientVotes[1024] = {0};
+        read(m_performersSockets[clientInd], clientVotes, 1024 - 1); // subtract 1 for the null terminator
+        clientVotes[1023] = '\0';
+        for(int ideaInd = 0; ideaInd < m_ideas.size(); ideaInd++){
+            if(clientVotes[ideaInd] == '1') votes[ideaInd]++;
+        }
+        close(m_performersSockets[clientInd]);
+    }
+    m_performersSockets.clear();
+
+    m_status = VOTING_COMPLETED;
+    return votes;
+}
+
+void Supervisor::display_best(QList<unsigned> votes){
+    m_browserBest->setText("Top 3 ideas:\n");
+
 }
