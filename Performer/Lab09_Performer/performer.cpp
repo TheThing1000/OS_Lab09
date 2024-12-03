@@ -77,3 +77,5 @@ QList<bool> Performer::collect_votes(QList<QCheckBox*> checkBoxes){
 void Performer::send_votes(QList<bool> votes){
 
 }
+
+

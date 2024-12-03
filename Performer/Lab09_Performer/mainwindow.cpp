@@ -10,6 +10,9 @@ MainWindow::MainWindow(QWidget *parent)
     qDebug() << "Establishing connection...";
     m_performer.establish_connection();
     m_ideaCount = 0;
+
+    signal(SIGUSR1, sigusr_handler);
+    disableSubmitting = false;
 }
 
 MainWindow::~MainWindow()
@@ -19,6 +22,10 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_btn_SubbmitIdea_clicked()
 {
+    if (disableSubmitting){
+        qDebug() << "can't submit idea";
+        return;
+    }
     m_ideaCount++;
     QString idea("PID: ");
     idea += QString::number(getpid());
@@ -35,7 +42,15 @@ void MainWindow::on_btn_SubbmitIdea_clicked()
 
 void MainWindow::on_btn_SubmitVotes_clicked()
 {
+    if (!disableSubmitting){
+        qDebug() << "can't submit votes";
+        return;
+    }
     m_checkBoxes = m_performer.display_ideas();
 
     //m_performer.send_votes(m_performer.collect_votes(m_checkBoxes));
+}
+
+void sigusr_handler(int signum){
+    disableSubmitting = true;
 }

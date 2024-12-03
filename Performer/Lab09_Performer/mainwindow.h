@@ -5,6 +5,10 @@
 
 #include "performer.h"
 
+void sigusr_handler(int signum);
+
+static bool disableSubmitting;
+
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
