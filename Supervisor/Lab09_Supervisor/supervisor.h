@@ -33,13 +33,13 @@ public:
                QTextBrowser *browserBest);
     ~Supervisor();
 
-    void create_board_file(QString fileName);
+    void create_board_file(QString filePath);
 
     bool collect_ideas(int performersCount, int performersTime);
 
-    QList<unsigned> start_voting();
+    QList<unsigned> get_votes();
 
-    void display_best(QList<unsigned> votes);
+    void display_best_ideas(QList<unsigned> votes);
 
     STATUS get_status();
 
@@ -51,7 +51,7 @@ private:
     QList<int> m_performersSockets;
     QList<pid_t> m_performersPids;
     QStringList m_ideas;
-    sem_t *h_sem;
+    sem_t *m_sem;
 };
 
 

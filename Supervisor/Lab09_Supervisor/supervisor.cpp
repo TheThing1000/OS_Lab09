@@ -15,8 +15,8 @@ Supervisor::Supervisor(QTextBrowser *browserAll,
 
 Supervisor::~Supervisor() {}
 
-void Supervisor::create_board_file(QString fileName) {
-    m_filePath = fileName;
+void Supervisor::create_board_file(QString filePath) {
+    m_filePath = filePath;
 
     QFile board(m_filePath);
     board.open(QIODevice::WriteOnly);
@@ -37,8 +37,8 @@ bool Supervisor::collect_ideas(int performersCount, int performersTime){
     m_performersSockets.clear();
     m_ideas.clear();
 
-    h_sem = sem_open(SEM_NAME, O_CREAT, 0777, 1);
-    if(h_sem == SEM_FAILED){
+    m_sem = sem_open(SEM_NAME, O_CREAT, 0777, 1);
+    if(m_sem == SEM_FAILED){
         qDebug() << "Error occured: creating semaphore. " << strerror(errno);
         return false;
     }
@@ -59,7 +59,7 @@ bool Supervisor::collect_ideas(int performersCount, int performersTime){
                 // swapping with performer
 
                 //TODO fix directories
-                execl("../../../../Performer/Lab09_Performer/build/Desktop_Qt_6_7_3-Debug/Lab09_Performer", NULL);
+                execl("../../../../Performer/Lab09_Performer/build/Desktop_Qt_6_7_2-Debug/Lab09_Performer", NULL);
 
                 qDebug() << "Failed to execl =(";
                 return false;
@@ -113,9 +113,7 @@ bool Supervisor::collect_ideas(int performersCount, int performersTime){
             return false;
         }
         // sending filePath to all the clients
-        // send(m_performersSockets.last(), m_filePath.toStdString().c_str(), m_filePath.length(), 0);
         write(m_performersSockets.last(), m_filePath.toStdString().c_str(), m_filePath.length());
-        //write(m_performersSockets.last(), m_filePath.toStdString().c_str(), m_filePath.length());
     }
 
     //change sleep time
@@ -129,9 +127,9 @@ bool Supervisor::collect_ideas(int performersCount, int performersTime){
         kill(m_performersPids[i], SIGSTOP);
     }
 
-    sem_close(h_sem);
+    sem_close(m_sem);
     sem_unlink(SEM_NAME);
-    h_sem = nullptr;
+    m_sem = nullptr;
 
     QFile board(m_filePath);
     board.open(QIODevice::ReadWrite);
@@ -164,7 +162,7 @@ bool Supervisor::collect_ideas(int performersCount, int performersTime){
     return true;
 }
 
-QList<unsigned> Supervisor::start_voting(){
+QList<unsigned> Supervisor::get_votes(){
 
     for (int i = 0; i < m_performersPids.size(); i++){
         kill(m_performersPids[i], SIGCONT);
@@ -192,15 +190,15 @@ QList<unsigned> Supervisor::start_voting(){
     return votes;
 }
 
-void Supervisor::display_best(QList<unsigned> votes){
+void Supervisor::display_best_ideas(QList<unsigned> votes){
     m_browserBest->setText("Top 3 ideas:\n");
     qDebug() << votes;
-    QList<std::pair<unsigned, QString>> votes_ideas;
+    QList<std::pair<unsigned, QString>> votesPerIdea;
     for (int i = 0; i < m_ideas.size(); ++i) {
-        votes_ideas.append(std::pair<unsigned, QString>(votes[i], m_ideas[i]));
+        votesPerIdea.append(std::pair<unsigned, QString>(votes[i], m_ideas[i]));
     }
     //sorry for this atrocity of a function call
-    std::sort(votes_ideas.begin(), votes_ideas.end(),
+    std::sort(votesPerIdea.begin(), votesPerIdea.end(),
         [](std::pair<unsigned, QString> x, std::pair<unsigned, QString> y){
         return x.first > y.first;
     });
@@ -211,11 +209,17 @@ void Supervisor::display_best(QList<unsigned> votes){
     out << "\n\nTop 3 ideas:\n";
 
     int i = 0;
-    while(i < votes_ideas.size()){
+    while(i < votesPerIdea.size()){
         if(i == 3) break;
-        QString bestIdea = votes_ideas[i].second + " (" + QString::number(votes_ideas[i].first) + " votes)";
-        m_browserBest->append(bestIdea);
-        out << bestIdea + "\n";
+        QString str_bestIdea = votesPerIdea[i].second + " (" + QString::number(votesPerIdea[i].first);
+        if (votesPerIdea[i].first % 10 == 1){
+            str_bestIdea += " vote)";
+        }
+        else {
+            str_bestIdea += " votes)";
+        }
+        m_browserBest->append(str_bestIdea);
+        out << str_bestIdea + "\n";
         i++;
     }
     board.close();
