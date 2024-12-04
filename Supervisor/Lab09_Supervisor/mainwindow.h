@@ -4,7 +4,7 @@
 #define PERFORMERS_COUNT_MIN 1
 #define PERFORMERS_COUNT_MAX 16
 #define PERFORMERS_TIME_MIN 1 //mins
-#define PERFORMERS_TIME_MAX 5 //mins
+#define PERFORMERS_TIME_MAX 1000 //mins
 
 #include <QMainWindow>
 #include "supervisor.h"
