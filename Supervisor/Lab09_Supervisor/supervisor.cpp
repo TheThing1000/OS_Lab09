@@ -212,7 +212,7 @@ void Supervisor::display_best_ideas(QList<unsigned> votes){
     while(i < votesPerIdea.size()){
         if(i == 3) break;
         QString str_bestIdea = votesPerIdea[i].second + " (" + QString::number(votesPerIdea[i].first);
-        if (votesPerIdea[i].first % 10 == 1){
+        if (votesPerIdea[i].first == 1){
             str_bestIdea += " vote)";
         }
         else {
