@@ -31,7 +31,18 @@ STATUS Supervisor::get_status() {
     return m_status;
 }
 
-void Supervisor::collect_ideas(int performersCount, int performersTime){
+bool Supervisor::collect_ideas(int performersCount, int performersTime){
+
+    m_performersPids.clear();
+    m_performersSockets.clear();
+    m_ideas.clear();
+
+    h_sem = sem_open(SEM_NAME, O_CREAT, 0777, 1);
+    if(h_sem == SEM_FAILED){
+        qDebug() << "Error occured: creating semaphore. " << strerror(errno);
+        return false;
+    }
+    sleep(2);
 
     //Creating performers
     m_performersPids.clear();
@@ -40,73 +51,87 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
         if(getpid() == supervisor_pid){
 
             pid_t pid = fork();
-            qDebug() << "!";
+            qDebug() << "forking";
             if(pid == -1){
-                qDebug() << "fork";
-                return;
+                qDebug() << "fork fail";
+                return false;
             } else if (pid == 0){
-                execl("/home/thething/TheThing/OS Lab09/Lab09/OS_Lab09/Performer/Lab09_Performer/build/Desktop_Qt_6_7_3-Release/Lab09_Performer", NULL);
-                //std::string cmd_line = "/home/thething/TheThing/OS Lab09/Lab09/OS_Lab09/Supervisor/test_client";
-                // char* cmd = new char[cmd_line.length() + 1];
-                // strcpy(cmd, cmd_line.c_str());
-                // execl("/usr/bin/xterm", "xterm", "-T", "New Process", "-e", cmd, NULL);
-                // delete[] cmd;
-                qDebug() << "execl";
-                return;
+                // swapping with performer
+
+                //TODO fix directories
+                execl("../../../../Performer/Lab09_Performer/build/Desktop_Qt_6_7_3-Debug/Lab09_Performer", NULL);
+
+                qDebug() << "Failed to execl =(";
+                return false;
             } else {
                 m_performersPids.append(pid);
             }
         }
     }
 
-    int server_fd;
-    struct sockaddr_in address;
-    int opt = 1;
-    socklen_t addrlen = sizeof(address);
+    int server_fd = -1;
+    struct sockaddr_un server_addr;
+    socklen_t addrlen = sizeof(server_addr);
+
+
+    if (access(SERVER_PATH, F_OK) != -1) {
+        unlink(SERVER_PATH); // delete the old socket
+    }
 
     // Creating socket file descriptor
-    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+    if ((server_fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
         qDebug() << "socket failed";
-        return;;
+        return false;
     }
 
-    // Forcefully attaching socket to the port 8080
-    if (setsockopt(server_fd, SOL_SOCKET,
-                   SO_REUSEADDR | SO_REUSEPORT, &opt,
-                   sizeof(opt))) {
-        qDebug() << "setsockopt";
-        return;;
-    }
-    address.sin_family = AF_INET;
-    address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(PORT);
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sun_family = AF_UNIX;
+    strcpy(server_addr.sun_path, SERVER_PATH);
 
-    // Forcefully attaching socket to the port 8080
-    if (bind(server_fd, (struct sockaddr*)&address,
-             sizeof(address))
-        < 0) {
+
+    // Getting a unique name for the socket
+    if (bind(server_fd, (struct sockaddr*) &server_addr, SUN_LEN(&server_addr)) < 0) {
         qDebug() << "bind failed";
-        return;;
+        return false;
     }
+
+    //Allow the server to accept incoming client connections. Backlog = performersCount means that the
+    //system will queue performersCount incoming connection requests before it start rejecting them
     if (listen(server_fd, performersCount) < 0) {
-        qDebug() << "listen";
-        return;;
+        qDebug() << "listen failed";
+        return false;
     }
 
     for(int i = 0; i < performersCount; i++){
-        m_performersSockets.append(accept(server_fd, (struct sockaddr*)&address,
+        //appending all the file handles
+        //accept will block indefinitely waiting for the incoming connection to arrive
+        m_performersSockets.append(accept(server_fd, (struct sockaddr*)&server_addr,
                                           &addrlen));
+        // check for errors
         if (m_performersSockets.last() < 0) {
-            qDebug() << "accept";
-            return;;
+            qDebug() << "accept file handle error";
+            return false;
         }
-
-        send(m_performersSockets.last(), m_filePath.toStdString().c_str(), m_filePath.length(), 0);
+        // sending filePath to all the clients
+        // send(m_performersSockets.last(), m_filePath.toStdString().c_str(), m_filePath.length(), 0);
+        write(m_performersSockets.last(), m_filePath.toStdString().c_str(), m_filePath.length());
+        //write(m_performersSockets.last(), m_filePath.toStdString().c_str(), m_filePath.length());
     }
 
-    sleep(performersTime * 60);
+    //change sleep time
+    qDebug() << "going to sleep";
+    sleep(performersTime);
+    qDebug() << "Stopped sleeping";
 
-    //TODO stop voting
+    //Stopping all performers
+    for (int i = 0; i < performersCount; i++){
+        kill(m_performersPids[i], SIGUSR1);
+        kill(m_performersPids[i], SIGSTOP);
+    }
+
+    sem_close(h_sem);
+    sem_unlink(SEM_NAME);
+    h_sem = nullptr;
 
     QFile board(m_filePath);
     board.open(QIODevice::ReadWrite);
@@ -123,9 +148,75 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
     }
 
     board.close();
+
+    if(m_ideas.size() == 0) {
+        for (int i = 0; i < m_performersPids.size(); i++){
+            kill(m_performersPids[i], SIGCONT);
+            kill(m_performersPids[i], SIGTERM);
+            m_browserAll->setText("Nothing to show. Ask for ideas.");
+            m_browserBest->setText("Nothing to show. Ask for ideas.");
+        }
+        return false;
+    }
+
+
     m_status = IDEAS_COLLECTED;
+    return true;
 }
 
-void Supervisor::start_voting(){
+QList<unsigned> Supervisor::start_voting(){
+
+    for (int i = 0; i < m_performersPids.size(); i++){
+        kill(m_performersPids[i], SIGCONT);
+    }
+  
+    QList<unsigned> votes(m_ideas.size(), 0);
+
+    for(int clientInd = 0; clientInd < m_performersSockets.size(); clientInd++){
+        char clientVotes[1024] = {0};
+        int res = read(m_performersSockets[clientInd], clientVotes, 1024 - 1); // subtract 1 for the null terminator
+        qDebug() << " read: " << res;
+        clientVotes[1023] = '\0';
+        for(int ideaInd = 0; ideaInd < m_ideas.size(); ideaInd++){
+            if(clientVotes[ideaInd] == '1') votes[ideaInd]++;
+        }
+        close(m_performersSockets[clientInd]);
+    }
+    m_performersSockets.clear();
+
+    for (int i = 0; i < m_performersPids.size(); i++){
+        kill(m_performersPids[i], SIGTERM);
+    }
+
     m_status = VOTING_COMPLETED;
+    return votes;
+}
+
+void Supervisor::display_best(QList<unsigned> votes){
+    m_browserBest->setText("Top 3 ideas:\n");
+    qDebug() << votes;
+    QList<std::pair<unsigned, QString>> votes_ideas;
+    for (int i = 0; i < m_ideas.size(); ++i) {
+        votes_ideas.append(std::pair<unsigned, QString>(votes[i], m_ideas[i]));
+    }
+    //sorry for this atrocity of a function call
+    std::sort(votes_ideas.begin(), votes_ideas.end(),
+        [](std::pair<unsigned, QString> x, std::pair<unsigned, QString> y){
+        return x.first > y.first;
+    });
+
+    QFile board(m_filePath);
+    board.open(QIODevice::Append);
+    QTextStream out(&board);
+    out << "\n\nTop 3 ideas:\n";
+
+    int i = 0;
+    while(i < votes_ideas.size()){
+        if(i == 3) break;
+        QString bestIdea = votes_ideas[i].second + " (" + QString::number(votes_ideas[i].first) + " votes)";
+        m_browserBest->append(bestIdea);
+        out << bestIdea + "\n";
+        i++;
+    }
+    board.close();
 }

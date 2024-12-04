@@ -3,33 +3,44 @@
 
 #define PORT 8080
 
+#define SERVER_PATH "/tmp/server"
+
 #include <arpa/inet.h>
-#include <stdio.h>
-#include <string.h>
 #include <sys/socket.h>
+#include <sys/un.h>
 #include <unistd.h>
+#include <semaphore.h>
+#include <fcntl.h>
 
 #include <QMainWindow>
 #include <QStringList>
 #include <QFile>
 #include <QTextStream>
+#include <QWidget>
+#include <QCheckBox>
+
+#include <signal.h>
+
+#define SEM_NAME "/osl"
 
 class Performer
 {
 public:
     Performer();
-    Performer(QMainWindow *mainWindow);
+    Performer(QWidget *scrollAreaWidget);
     ~Performer();
 
     void establish_connection();
-    void send_idea(QString idea);
-    QStringList recieve_ideas();
-    void send_votes(QString idea);
+    void write_idea_to_board(QString idea);
+    QList<QCheckBox*> display_ideas();
+    QList<bool> collect_votes(QList<QCheckBox*> checkBoxes);
+    void send_votes(QList<bool> votes);
 
 private:
     int m_serverSocket;
-    QMainWindow *m_mainWindow;
+    QWidget *m_scrollAreaWidget;
     QString m_filePath;
+    sem_t *h_sem;
 };
 
 #endif // PERFORMER_H
