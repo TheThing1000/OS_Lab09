@@ -35,7 +35,7 @@ public:
 
     void create_board_file(QString fileName);
 
-    void collect_ideas(int performersCount, int performersTime);
+    bool collect_ideas(int performersCount, int performersTime);
 
     QList<unsigned> start_voting();
 

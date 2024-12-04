@@ -31,12 +31,16 @@ STATUS Supervisor::get_status() {
     return m_status;
 }
 
-void Supervisor::collect_ideas(int performersCount, int performersTime){
+bool Supervisor::collect_ideas(int performersCount, int performersTime){
+
+    m_performersPids.clear();
+    m_performersSockets.clear();
+    m_ideas.clear();
 
     h_sem = sem_open(SEM_NAME, O_CREAT, 0777, 1);
     if(h_sem == SEM_FAILED){
         qDebug() << "Error occured: creating semaphore. " << strerror(errno);
-        return;
+        return false;
     }
     sleep(2);
 
@@ -50,7 +54,7 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
             qDebug() << "forking";
             if(pid == -1){
                 qDebug() << "fork fail";
-                return;
+                return false;
             } else if (pid == 0){
                 // swapping with performer
 
@@ -58,7 +62,7 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
                 execl("../../../../Performer/Lab09_Performer/build/Desktop_Qt_6_7_3-Debug/Lab09_Performer", NULL);
 
                 qDebug() << "Failed to execl =(";
-                return;
+                return false;
             } else {
                 m_performersPids.append(pid);
             }
@@ -77,7 +81,7 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
     // Creating socket file descriptor
     if ((server_fd = socket(AF_UNIX, SOCK_STREAM, 0)) < 0) {
         qDebug() << "socket failed";
-        return;
+        return false;
     }
 
     memset(&server_addr, 0, sizeof(server_addr));
@@ -88,14 +92,14 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
     // Getting a unique name for the socket
     if (bind(server_fd, (struct sockaddr*) &server_addr, SUN_LEN(&server_addr)) < 0) {
         qDebug() << "bind failed";
-        return;
+        return false;
     }
 
     //Allow the server to accept incoming client connections. Backlog = performersCount means that the
     //system will queue performersCount incoming connection requests before it start rejecting them
     if (listen(server_fd, performersCount) < 0) {
         qDebug() << "listen failed";
-        return;
+        return false;
     }
 
     for(int i = 0; i < performersCount; i++){
@@ -106,7 +110,7 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
         // check for errors
         if (m_performersSockets.last() < 0) {
             qDebug() << "accept file handle error";
-            return;
+            return false;
         }
         // sending filePath to all the clients
         // send(m_performersSockets.last(), m_filePath.toStdString().c_str(), m_filePath.length(), 0);
@@ -129,8 +133,6 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
     sem_unlink(SEM_NAME);
     h_sem = nullptr;
 
-    //TODO stop voting
-
     QFile board(m_filePath);
     board.open(QIODevice::ReadWrite);
     QTextStream in(&board);
@@ -146,7 +148,20 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
     }
 
     board.close();
+
+    if(m_ideas.size() == 0) {
+        for (int i = 0; i < m_performersPids.size(); i++){
+            kill(m_performersPids[i], SIGCONT);
+            kill(m_performersPids[i], SIGTERM);
+            m_browserAll->setText("Nothing to show. Ask for ideas.");
+            m_browserBest->setText("Nothing to show. Ask for ideas.");
+        }
+        return false;
+    }
+
+
     m_status = IDEAS_COLLECTED;
+    return true;
 }
 
 QList<unsigned> Supervisor::start_voting(){

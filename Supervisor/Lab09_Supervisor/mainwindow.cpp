@@ -79,8 +79,12 @@ void MainWindow::on_btn_AskIdeas_clicked()
 
 
     if (dialog->exec() == QDialog::Accepted) {
-        m_supervisor.collect_ideas(performers_count_spinBox->value(),
-                                   performers_time_spinBox->value());
+        if(!m_supervisor.collect_ideas(performers_count_spinBox->value(),
+                                        performers_time_spinBox->value())){
+            QErrorMessage *err = new QErrorMessage(this);
+            err->setWindowTitle("Failed to collect ideas");
+            err->showMessage("No ideas were submitted or other error happend. Restart idea submititing");
+        }
     }
 }
 
