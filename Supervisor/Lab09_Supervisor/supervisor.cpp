@@ -172,7 +172,11 @@ void Supervisor::display_best(QList<unsigned> votes){
     for (int i = 0; i < m_ideas.size(); ++i) {
         votes_ideas.append(std::pair<unsigned, QString>(votes[i], m_ideas[i]));
     }
-    std::sort(votes_ideas.begin(), votes_ideas.end());
+    //sorry for this atrocity of a function call
+    std::sort(votes_ideas.begin(), votes_ideas.end(),
+        [](std::pair<unsigned, QString> x, std::pair<unsigned, QString> y){
+        return x.first > y.first;
+    });
 
     QFile board(m_filePath);
     board.open(QIODevice::Append);
