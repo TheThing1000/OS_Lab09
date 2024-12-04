@@ -23,9 +23,8 @@
 #include <semaphore.h>
 #include <sys/un.h>
 
-
-
 enum STATUS {NO_BOARD, BOARD_CREATED, IDEAS_COLLECTED, VOTING_COMPLETED};
+#define SEM_NAME "/osl"
 
 class Supervisor {
 public:
@@ -36,7 +35,7 @@ public:
 
     void create_board_file(QString fileName);
 
-    void collect_ideas(int performersCount, int performersTime);
+    bool collect_ideas(int performersCount, int performersTime);
 
     QList<unsigned> start_voting();
 
@@ -52,6 +51,8 @@ private:
     QList<int> m_performersSockets;
     QList<pid_t> m_performersPids;
     QStringList m_ideas;
+    sem_t *h_sem;
 };
+
 
 #endif // SUPERVISOR_H

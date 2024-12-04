@@ -57,15 +57,17 @@ void MainWindow::on_btn_AskIdeas_clicked()
 
     QSpinBox *performers_count_spinBox = new QSpinBox(dialog);
     performers_count_spinBox->setGeometry(10, 40, 180, 20);
+    performers_count_spinBox->setValue(3);
     performers_count_spinBox->setRange(PERFORMERS_COUNT_MIN, PERFORMERS_COUNT_MAX);
 
 
     QLabel *performers_time_lable = new QLabel(dialog);
-    performers_time_lable->setText("Performers time:");
+    performers_time_lable->setText("Performers time (seconds):");
     performers_time_lable->setGeometry(10, 90, 280, 20);
 
     QSpinBox *performers_time_spinBox = new QSpinBox(dialog);
     performers_time_spinBox->setGeometry(10, 120, 180, 20);
+    performers_time_spinBox->setValue(60);
     performers_time_spinBox->setRange(PERFORMERS_TIME_MIN, PERFORMERS_TIME_MAX);
 
 
@@ -77,8 +79,12 @@ void MainWindow::on_btn_AskIdeas_clicked()
 
 
     if (dialog->exec() == QDialog::Accepted) {
-        m_supervisor.collect_ideas(performers_count_spinBox->value(),
-                                   performers_time_spinBox->value());
+        if(!m_supervisor.collect_ideas(performers_count_spinBox->value(),
+                                        performers_time_spinBox->value())){
+            QErrorMessage *err = new QErrorMessage(this);
+            err->setWindowTitle("Failed to collect ideas");
+            err->showMessage("No ideas were submitted or other error happend. Restart idea submititing");
+        }
     }
 }
 
