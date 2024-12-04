@@ -18,23 +18,23 @@ void MainWindow::on_btn_CreateBoard_clicked()
 {
     if (m_supervisor.get_status() != NO_BOARD) {
         QMessageBox::StandardButton reply;
-        reply = QMessageBox::question(this, "Create new Idea Board", "Board already exists.\nReplace it?",
+        reply = QMessageBox::question(this, "Create new Idea Board", "Idea Board already exists.\nDo you wish to replace it?",
                                       QMessageBox::Yes|QMessageBox::No);
         if (reply != QMessageBox::Yes) {
             return;
         }
     }
 
-    QString fileName = QFileDialog::getSaveFileName(this, tr("Create new Idea Board"), QDir::homePath() + "/ideaBoard.txt",
+    QString filePath = QFileDialog::getSaveFileName(this, tr("Create new Idea Board"), QDir::homePath() + "/ideaBoard.txt",
                                                     tr("Text file (*.txt)"));
-    if (fileName.isEmpty()){
+    if (filePath.isEmpty()){
         QErrorMessage *err = new QErrorMessage(this);
         err->setWindowTitle("Incorrect file name");
-        err->showMessage("Empty file name");
+        err->showMessage("File name can't be empty");
         return;
     }
 
-    m_supervisor.create_board_file(fileName);
+    m_supervisor.create_board_file(filePath);
 }
 
 
@@ -42,8 +42,9 @@ void MainWindow::on_btn_AskIdeas_clicked()
 {
     if (m_supervisor.get_status() != BOARD_CREATED) {
         QErrorMessage *err = new QErrorMessage(this);
-        err->setWindowTitle("Collection of Ideas failed");
-        err->showMessage("Create Idea Bord first (or ideas were already collected)");
+        err->setWindowTitle("Failed to collect ideas");
+        // err->showMessage("Create Idea Board first (or ideas were already collected)");
+        err->showMessage("An Idea Board has not been created or ideas have already been collected.");
         return;
     }
 
@@ -93,14 +94,14 @@ void MainWindow::on_btn_StartVoting_clicked()
 {
     if (m_supervisor.get_status() != IDEAS_COLLECTED) {
         QErrorMessage *err = new QErrorMessage(this);
-        err->setWindowTitle("Voting failed");
-        err->showMessage("Create Idea Bord and collect ideas first");
+        err->setWindowTitle("Failed to start the voting");
+        err->showMessage("An Idea Board has not been created or no ideas have been collected yet.");
         return;
     }
 
-    QList<unsigned> votes = m_supervisor.start_voting();
+    QList<unsigned> votes = m_supervisor.get_votes();
 
     QMessageBox::information(this, "Voting completed", "Voting completed.\nTop 3 ideas formed.");
 
-    m_supervisor.display_best(votes);
+    m_supervisor.display_best_ideas(votes);
 }

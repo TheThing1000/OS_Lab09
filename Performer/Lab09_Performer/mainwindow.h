@@ -7,6 +7,8 @@
 
 #include "performer.h"
 
+
+
 void sigusr_handler(int signum);
 
 static bool disableSubmittingVotes;
@@ -30,7 +32,7 @@ signals:
     void on_sigusr();
 
 public slots:
-    void display_ideas_slot();
+    void display_ideas();
 
 private slots:
     void on_btn_SubbmitIdea_clicked();
@@ -40,8 +42,8 @@ private slots:
 private:
     Ui::MainWindow *ui;
     Performer m_performer;
-    QList<QCheckBox*> m_checkBoxes;
-    unsigned m_ideaCount;
+    QList<QCheckBox*> m_ideaCheckBoxes;
+    unsigned m_ideasCount;
 };
 
 static MainWindow* MainWindowPtr;

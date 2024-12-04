@@ -33,14 +33,14 @@ public:
     void establish_connection();
     void write_idea_to_board(QString idea);
     QList<QCheckBox*> display_ideas();
-    QList<bool> collect_votes(QList<QCheckBox*> checkBoxes);
+    QList<bool> collect_votes(QList<QCheckBox*> ideaCheckBoxes);
     void send_votes(QList<bool> votes);
 
 private:
     int m_serverSocket;
     QWidget *m_scrollAreaWidget;
     QString m_filePath;
-    sem_t *h_sem;
+    sem_t *m_sem;
 };
 
 #endif // PERFORMER_H

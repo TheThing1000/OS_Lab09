@@ -10,8 +10,8 @@ Performer::~Performer() {}
 
 void Performer::establish_connection(){
 
-    h_sem = sem_open(SEM_NAME, O_EXCL);
-    if(h_sem == SEM_FAILED){
+    m_sem = sem_open(SEM_NAME, O_EXCL);
+    if(m_sem == SEM_FAILED){
         qDebug() << "sem open client: " << strerror(errno);
         exit(1);
     }
@@ -40,50 +40,48 @@ void Performer::establish_connection(){
 }
 
 void Performer::write_idea_to_board(QString idea){
-    sem_wait(h_sem);
+    sem_wait(m_sem);
     QFile board(m_filePath);
     board.open(QIODevice::Append);
     QTextStream out(&board);
     out << idea + "\n";
     board.close();
     qDebug() << m_filePath;
-    sem_post(h_sem);
+    sem_post(m_sem);
 }
 
 QList<QCheckBox*> Performer::display_ideas(){
-    sem_wait(h_sem);
+    sem_wait(m_sem);
     QFile board(m_filePath);
     board.open(QIODevice::ReadOnly);
     QTextStream in(&board);
 
-    QList<QCheckBox*> checkBoxes;
+    QList<QCheckBox*> ideaCheckBoxes;
     int idea_count =0;
     while (!in.atEnd()) {
         QStringList idea_tokens = in.readLine().split(" ");
         QString idea = idea_tokens[0] + " " + idea_tokens[1] + " " + idea_tokens[2] + " " + idea_tokens[3].removeLast();
         m_scrollAreaWidget->resize(m_scrollAreaWidget->width(), m_scrollAreaWidget->height() + 50);
-        qDebug() << "m_scrollAreaWidget: " << m_scrollAreaWidget->parentWidget()->accessibleName();
-        checkBoxes.append(new QCheckBox(m_scrollAreaWidget));
-        qDebug() << "good new QCheckBox";
-        checkBoxes.last()->setCheckState(Qt::Unchecked);
-        checkBoxes.last()->setGeometry(10, 10 + 50 * idea_count, 200, 30);
-        checkBoxes.last()->setText(idea);
-        checkBoxes.last()->show();
+        ideaCheckBoxes.append(new QCheckBox(m_scrollAreaWidget));
+        ideaCheckBoxes.last()->setCheckState(Qt::Unchecked);
+        ideaCheckBoxes.last()->setGeometry(10, 10 + 50 * idea_count, 200, 30);
+        ideaCheckBoxes.last()->setText(idea);
+        ideaCheckBoxes.last()->show();
 
         idea_count++;
     }
 
     board.close();
-    sem_post(h_sem);
-    sem_close(h_sem);
-    h_sem = nullptr;
-    return checkBoxes;
+    sem_post(m_sem);
+    sem_close(m_sem);
+    m_sem = nullptr;
+    return ideaCheckBoxes;
 }
 
-QList<bool> Performer::collect_votes(QList<QCheckBox*> checkBoxes){
-    QList<bool> votes(checkBoxes.size(), false);
-    for(int i = 0; i < checkBoxes.size(); i++){
-        votes[i] = (checkBoxes[i]->checkState() == Qt::Checked) ? true : false;
+QList<bool> Performer::collect_votes(QList<QCheckBox*> ideaCheckBoxes){
+    QList<bool> votes(ideaCheckBoxes.size(), false);
+    for(int i = 0; i < ideaCheckBoxes.size(); i++){
+        votes[i] = (ideaCheckBoxes[i]->checkState() == Qt::Checked) ? true : false;
     }
     return votes;
 }
