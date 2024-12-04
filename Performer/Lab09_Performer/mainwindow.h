@@ -12,7 +12,6 @@ void sigusr_handler(int signum);
 static bool disableSubmittingVotes;
 static bool disableSubmittingIdeas;
 
-
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;

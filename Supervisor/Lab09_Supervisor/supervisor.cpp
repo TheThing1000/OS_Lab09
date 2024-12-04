@@ -33,6 +33,13 @@ STATUS Supervisor::get_status() {
 
 void Supervisor::collect_ideas(int performersCount, int performersTime){
 
+    h_sem = sem_open(SEM_NAME, O_CREAT, 0777, 1);
+    if(h_sem == SEM_FAILED){
+        qDebug() << "Error occured: creating semaphore. " << strerror(errno);
+        return;
+    }
+    sleep(2);
+
     //Creating performers
     m_performersPids.clear();
     pid_t supervisor_pid = getpid();
@@ -48,7 +55,7 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
                 // swapping with performer
 
                 //TODO fix directories
-                execl("../../../../Performer/Lab09_Performer/build/Desktop_Qt_6_7_2-Debug/Lab09_Performer", NULL);
+                execl("../../../../Performer/Lab09_Performer/build/Desktop_Qt_6_7_3-Debug/Lab09_Performer", NULL);
 
                 qDebug() << "Failed to execl =(";
                 return;
@@ -104,6 +111,7 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
         // sending filePath to all the clients
         // send(m_performersSockets.last(), m_filePath.toStdString().c_str(), m_filePath.length(), 0);
         write(m_performersSockets.last(), m_filePath.toStdString().c_str(), m_filePath.length());
+        //write(m_performersSockets.last(), m_filePath.toStdString().c_str(), m_filePath.length());
     }
 
     //change sleep time
@@ -116,6 +124,10 @@ void Supervisor::collect_ideas(int performersCount, int performersTime){
         kill(m_performersPids[i], SIGUSR1);
         kill(m_performersPids[i], SIGSTOP);
     }
+
+    sem_close(h_sem);
+    sem_unlink(SEM_NAME);
+    h_sem = nullptr;
 
     //TODO stop voting
 
